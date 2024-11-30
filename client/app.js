@@ -1,13 +1,5 @@
 const API_URL = 'http://localhost:3000'; // Replace with your server's URL
-let token = localStorage.getItem('token'); // Retrieve token from localStorage
-
-// DOM Elements
-const authSection = document.getElementById('auth-section');
-const taskSection = document.getElementById('task-section');
-const registerBtn = document.getElementById('register-btn');
-const loginBtn = document.getElementById('login-btn');
-const logoutBtn = document.getElementById('logout-btn');
-
+let token = null;
 
 // DOM Elements
 const loginTab = document.getElementById('login-tab');
@@ -23,17 +15,6 @@ const registerConfirmPassword = document.getElementById('register-confirm-passwo
 const loginTogglePassword = document.getElementById('login-toggle-password');
 const registerTogglePassword = document.getElementById('register-toggle-password');
 const registerToggleConfirmPassword = document.getElementById('register-toggle-confirm-password');
-// DOM Elements
-const taskTitle = document.getElementById('task-title');
-const taskDescription = document.getElementById('task-description');
-const taskPriority = document.getElementById('task-priority');
-const taskDeadline = document.getElementById('task-deadline');
-const createTaskBtn = document.getElementById('create-task-btn');
-const searchBar = document.getElementById('search-bar');
-const filterPriority = document.getElementById('filter-priority');
-const applyFiltersBtn = document.getElementById('apply-filters-btn');
-const taskList = document.getElementById('task-list');
-
 
 // Toggle between Login and Register tabs
 loginTab.addEventListener('click', () => {
@@ -78,29 +59,23 @@ const validatePassword = (password) => {
   return regex.test(password);
 };
 
-// Toggle Views
-const toggleSections = () => {
-  if (token) {
-    authSection.style.display = 'none';
-    taskSection.style.display = 'block';
-    fetchTasks(); // Load tasks for authenticated users
-  } else {
-    authSection.style.display = 'block';
-    taskSection.style.display = 'none';
-  }
-};
-
-// Register User
+// Register user
 const registerUser = async () => {
-  const username = document.getElementById('username').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
+  const username = registerUsername.value.trim();
+  const email = registerEmail.value.trim();
+  const password = registerPassword.value;
+  const confirmPassword = registerConfirmPassword.value;
+
+  if (!validateEmail(email)) return alert('Invalid email format.');
+  if (!validatePassword(password))
+    return alert('Password must be at least 4 characters, include 1 uppercase, 1 lowercase, 1 number, and 1 special character.');
+  if (password !== confirmPassword) return alert('Passwords do not match.');
 
   try {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password })
     });
 
     if (!response.ok) throw new Error('Registration failed');
@@ -110,126 +85,30 @@ const registerUser = async () => {
   }
 };
 
-// Login User
+// Login user
 const loginUser = async () => {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
+  const email = loginEmail.value.trim();
+  const password = loginPassword.value;
+
+  if (!validateEmail(email)) return alert('Invalid email format.');
 
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password })
     });
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
 
     token = data.token;
-    localStorage.setItem('token', token); // Store token in localStorage
-    toggleSections();
+    alert('Login successful!');
+    // Redirect or show tasks section...
   } catch (error) {
     alert(error.message);
   }
 };
-
-// Logout User
-const logoutUser = () => {
-  token = null;
-  localStorage.removeItem('token'); // Clear token from localStorage
-  toggleSections();
-};
-
-// Fetch Tasks
-const fetchTasks = async () => {
-  try {
-    const response = await fetch(`${API_URL}/tasks`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!response.ok) throw new Error('Failed to fetch tasks');
-    const tasks = await response.json();
-    renderTasks(tasks);
-  } catch (error) {
-    alert(error.message);
-  }
-};
-
-// Render Tasks
-const renderTasks = (tasks) => {
-  const taskList = document.getElementById('task-list');
-  taskList.innerHTML = ''; // Clear existing tasks
-
-  tasks.forEach((task) => {
-    const li = document.createElement('li');
-    li.classList.add('task-item');
-    li.innerHTML = `
-      <div class="task-info">
-        <h3>${task.title}</h3>
-        <p>${task.description}</p>
-        <small>Priority: ${task.priority} | Due: ${new Date(task.deadline).toLocaleDateString()}</small>
-      </div>
-      <div class="task-actions">
-        <button class="btn edit-btn" onclick="editTask('${task._id}')">Edit</button>
-        <button class="btn delete-btn" onclick="deleteTask('${task._id}')">Delete</button>
-      </div>
-    `;
-    taskList.appendChild(li);
-  });
-};
-
-// Event Listeners
-registerBtn.addEventListener('click', registerUser);
-loginBtn.addEventListener('click', loginUser);
-logoutBtn.addEventListener('click', logoutUser);
-
-// Initialize View
-toggleSections();
-
-
-
-// Create Task
-const createTask = async () => {
-  const title = taskTitle.value;
-  const description = taskDescription.value;
-  const priority = taskPriority.value;
-  const deadline = taskDeadline.value;
-
-  try {
-    const response = await fetch(`${API_URL}/tasks`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ title, description, priority, deadline }),
-    });
-
-    if (!response.ok) throw new Error('Failed to create task');
-    fetchTasks();
-  } catch (error) {
-    alert(error.message);
-  }
-};
-
-// Delete Task
-const deleteTask = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/tasks/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!response.ok) throw new Error('Failed to delete task');
-    fetchTasks();
-  } catch (error) {
-    alert(error.message);
-  }
-};
-
-// Event Listeners
-createTaskBtn.addEventListener('click', createTask);
-applyFiltersBtn.addEventListener('click', fetchTasks);
 
 // Event Listeners
 document.getElementById('register-btn').addEventListener('click', registerUser);

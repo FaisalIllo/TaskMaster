@@ -6,6 +6,10 @@ require('dotenv').config()
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
+console.log({
+  rt: "auth",
+  JWT_SECRET,
+})
 // Registration
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -25,6 +29,7 @@ router.post('/login', async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
+    console.log({user});
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }

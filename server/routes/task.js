@@ -2,10 +2,15 @@
 const express = require('express');
 const Task = require('../models/Task');
 const jwt = require('jsonwebtoken');
+require('dotenv').config()
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 // Middleware to authenticate user
+console.log({
+  rt: "taksJs",
+  JWT_SECRET,
+})
 
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
