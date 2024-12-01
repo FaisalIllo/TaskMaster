@@ -1,4 +1,4 @@
-const API_URL = "https://task-master-svr.vercel.app/api"; // Replace with your server's URL
+const API_URL = "https://task-master-be-iota.vercel.app/api"
 
 document.addEventListener('DOMContentLoaded', () => {
   // Detect which page is loaded

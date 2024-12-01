@@ -32,8 +32,8 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/tasks', taskRoutes);
+app.use('/auth', authRoutes);
+app.use('/tasks', taskRoutes);
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
