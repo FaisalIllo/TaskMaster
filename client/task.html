@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskMaster - Tasks</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="navbar-left">
+        <h2 id="greeting"></h2>
+      </div>
+      <div class="navbar-right">
+        <button id="logout-btn" class="logout-btn">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Task Management Section -->
+    <div id="task-section">
+      <form id="task-form" class="task-form">
+        <input type="text" id="task-title" placeholder="Task Title" required />
+        <textarea id="task-description" placeholder="Task Description" required></textarea>
+        <input type="date" id="task-deadline" required />
+        <select id="task-priority">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button type="submit" class="add-task-btn">Add Task</button>
+      </form>
+
+      <div id="task-list">
+        <h2>Your Tasks</h2>
+        <ul id="tasks"></ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

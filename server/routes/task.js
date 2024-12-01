@@ -1,27 +1,40 @@
-// /routes/tasks.js
 const express = require('express');
 const Task = require('../models/Task');
 const jwt = require('jsonwebtoken');
-require('dotenv').config()
+require('dotenv').config();
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
-// Middleware to authenticate user
-console.log({
-  rt: "taksJs",
-  JWT_SECRET,
-})
 
+// Middleware to authenticate user and refresh token
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
+    // Verify the token
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
+
+    // Generate a new token
+    const newToken = jwt.sign({ id: decoded.id }, JWT_SECRET, { expiresIn: '15m' });
+    res.locals.newToken = newToken; // Attach the new token to the response object
     next();
-  } catch {
-    res.status(403).json({ error: 'Invalid token' });
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      try {
+        // Decode the expired token to extract the user info
+        const decoded = jwt.decode(token);
+        const newToken = jwt.sign({ id: decoded.id }, JWT_SECRET, { expiresIn: '15m' });
+        res.locals.newToken = newToken; // Attach the new token to the response object
+        req.user = decoded; // Set the decoded user info
+        next();
+      } catch (decodeError) {
+        return res.status(403).json({ error: 'Invalid token' });
+      }
+    } else {
+      return res.status(403).json({ error: 'Invalid token' });
+    }
   }
 };
 
@@ -35,10 +48,10 @@ router.post('/', authenticate, async (req, res) => {
       title,
       description,
       priority,
-      deadline
+      deadline,
     });
     await task.save();
-    res.status(201).json(task);
+    res.status(201).json({ task, token: res.locals.newToken }); // Return the task and the new token
   } catch (err) {
     res.status(400).json({ error: 'Error creating task' });
   }
@@ -56,12 +69,12 @@ router.get('/', authenticate, async (req, res) => {
     if (search) {
       filter.$or = [
         { title: new RegExp(search, 'i') },
-        { description: new RegExp(search, 'i') }
+        { description: new RegExp(search, 'i') },
       ];
     }
 
     const tasks = await Task.find(filter);
-    res.json(tasks);
+    res.json({ tasks, token: res.locals.newToken }); // Return the tasks and the new token
   } catch (err) {
     res.status(500).json({ error: 'Error retrieving tasks' });
   }
@@ -76,7 +89,7 @@ router.put('/:id', authenticate, async (req, res) => {
       { new: true }
     );
     if (!task) return res.status(404).json({ error: 'Task not found' });
-    res.json(task);
+    res.json({ task, token: res.locals.newToken }); // Return the updated task and the new token
   } catch (err) {
     res.status(400).json({ error: 'Error updating task' });
   }
@@ -87,7 +100,7 @@ router.delete('/:id', authenticate, async (req, res) => {
   try {
     const task = await Task.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     if (!task) return res.status(404).json({ error: 'Task not found' });
-    res.json({ message: 'Task deleted successfully' });
+    res.json({ message: 'Task deleted successfully', token: res.locals.newToken }); // Return success message and the new token
   } catch (err) {
     res.status(500).json({ error: 'Error deleting task' });
   }
