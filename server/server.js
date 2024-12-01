@@ -10,7 +10,7 @@ const taskRoutes = require('./routes/tasks');
 const app = express();
 
 // MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/TaskMaster';
+const MONGO_URI = process.env.MONGODB_URL;
 mongoose
   .connect(MONGO_URI )
   .then(() => console.log('MongoDB connected'))
