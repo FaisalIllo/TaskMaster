@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api'; // Replace with your server's URL
+const API_URL = "task-master-server-seven.vercel.app/api"; // Replace with your server's URL
 
 document.addEventListener('DOMContentLoaded', () => {
   // Detect which page is loaded
